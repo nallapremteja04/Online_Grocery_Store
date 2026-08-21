@@ -1,0 +1,260 @@
+{% extends 'ogs/base.html' %}
+{% load static %}
+
+{% block title %}
+🍳 Recipe Hub - Required & Available Store Ingredients
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    
+    <!-- BREADCRUMBS -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb bg-light rounded-pill px-4 py-2 small shadow-sm">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-decoration-none text-success fw-semibold">Home</a></li>
+            <li class="breadcrumb-item active text-muted" aria-current="page">🍳 Recipe Hub</li>
+        </ol>
+    </nav>
+
+    <!-- HERO HEADER BANNER -->
+    <div class="card border-0 rounded-4 shadow-lg text-white mb-5 overflow-hidden position-relative" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+        <div class="card-body p-4 p-md-5">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <span class="badge bg-white text-success rounded-pill px-3 py-2 fw-bold mb-3 shadow-sm">✨ Smart Recipe Ingredient Checker</span>
+                    <h1 class="fw-bold display-4 mb-3">🍳 Recipe-to-Cart Hub</h1>
+                    <p class="fs-5 opacity-90 mb-4">Type any recipe (e.g. <strong>Biryani</strong>, <strong>Pasta</strong>, <strong>Smoothie</strong>) to view all required ingredients, see available store products, and add them directly to your cart!</p>
+
+                    <!-- SEARCH FORM -->
+                    <form action="{% url 'recipe_list' %}" method="GET" class="mb-2">
+                        <div class="input-group input-group-lg shadow-sm rounded-pill overflow-hidden bg-white">
+                            <input type="text" name="q" value="{{ query }}" class="form-control border-0 px-4 fs-6 text-dark" placeholder="Type any recipe (e.g. Biryani, Pasta, Smoothie)..." required>
+                            <button class="btn btn-dark px-4 fw-bold" type="submit">🔍 Check Recipe</button>
+                            {% if query %}
+                            <a href="{% url 'recipe_list' %}" class="btn btn-outline-secondary px-3 d-flex align-items-center">Clear</a>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+                <div class="col-lg-4 text-center d-none d-lg-block">
+                    <span style="font-size: 8rem; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2));">🍲</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if breakdown %}
+    <!-- DYNAMIC AI RECIPE INGREDIENT ANALYSIS & AVAILABLE PRODUCTS BREAKDOWN -->
+    <div id="recipeBreakdownSection" class="card border-0 shadow-lg rounded-4 mb-5 overflow-hidden bg-white">
+        
+        <!-- HEADER -->
+        <div class="card-header bg-success text-white p-4">
+            <h2 class="fw-bold mb-1">🍲 Required Ingredients for "{{ breakdown.recipe_name }}"</h2>
+            <p class="mb-0 text-white-50 fs-6">To prepare <strong>{{ breakdown.recipe_name }}</strong>, you need <strong>{{ breakdown.total_count }} ingredients</strong>. Below are the products available in our store that you can add to your cart!</p>
+        </div>
+
+        <div class="card-body p-4 p-md-5">
+            
+            <!-- SECTION 1: ALL REQUIRED INGREDIENTS LIST -->
+            <div class="p-4 bg-light rounded-4 mb-4">
+                <h5 class="fw-bold text-dark mb-3">📋 All {{ breakdown.total_count }} Required Ingredients for {{ breakdown.recipe_name }}:</h5>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for item in breakdown.all_items %}
+                    <span class="badge {% if item.status == 'available' %}bg-success{% else %}bg-secondary{% endif %} rounded-pill px-3 py-2 fs-6 shadow-sm">
+                        {% if item.status == 'available' %}✔ In Store:{% else %}❌ Unavailable:{% endif %} {{ item.name }}
+                    </span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- SECTION 2: AVAILABLE PRODUCTS IN STORE (CAN BE ADDED TO CART) -->
+            <div class="mb-5">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h4 class="fw-bold text-success mb-1">
+                            🛒 Available Store Products for {{ breakdown.recipe_name }} ({{ breakdown.available_count }} / {{ breakdown.total_count }})
+                        </h4>
+                        <p class="text-muted small mb-0">These items are in stock and ready to be added to your cart!</p>
+                    </div>
+                    <span class="badge bg-success-subtle text-success fs-6 rounded-pill px-3 py-2">✔ {{ breakdown.available_count }} Available</span>
+                </div>
+
+                {% if breakdown.available_items %}
+                <div class="row g-3">
+                    {% for item in breakdown.available_items %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card border border-success-subtle shadow-sm rounded-4 p-3 h-100 bg-white">
+                            <div class="d-flex align-items-center gap-3">
+                                {% if item.product.image %}
+                                <img src="{{ item.product.image.url }}" class="rounded-3 shadow-sm" style="width: 60px; height: 60px; object-fit: cover;" alt="{{ item.product.name }}">
+                                {% else %}
+                                <span class="fs-2">🥗</span>
+                                {% endif %}
+                                
+                                <div class="flex-grow-1">
+                                    <small class="text-muted d-block fw-semibold mb-1">Ingredient: {{ item.name }}</small>
+                                    <h6 class="fw-bold text-dark mb-1">{{ item.product.name }}</h6>
+                                    <div class="d-flex justify-content-between align-items-center mt-2">
+                                        <strong class="text-success fs-5">₹{{ item.price }}</strong>
+                                        <a href="{% url 'add_to_cart' item.product.id %}" class="btn btn-sm btn-success rounded-pill px-3 fw-bold">
+                                            🛒 Add to Cart
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-warning rounded-4 p-3">
+                    No matching ingredients currently available in store stock for this recipe.
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- SECTION 3: CURRENTLY MISSING / UNAVAILABLE INGREDIENTS -->
+            {% if breakdown.unavailable_items %}
+            <div class="p-4 bg-danger-subtle rounded-4">
+                <h5 class="fw-bold text-danger mb-2">❌ Currently Unavailable Ingredients in Store ({{ breakdown.unavailable_count }}):</h5>
+                <p class="text-muted small mb-3">These ingredients are required for {{ breakdown.recipe_name }} but are currently out of stock in our grocery store:</p>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for item in breakdown.unavailable_items %}
+                    <span class="badge bg-danger rounded-pill px-3 py-2 fs-6">
+                        ❌ {{ item.name }}
+                    </span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const section = document.getElementById("recipeBreakdownSection");
+        if (section) {
+            setTimeout(function() {
+                section.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+            }, 150);
+        }
+    });
+    </script>
+    {% endif %}
+
+    <!-- SECTION TITLE: 3 RECOMMENDED RECIPES VS SEARCH RESULTS -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        {% if query %}
+        <h3 class="fw-bold mb-0 text-dark">📖 Saved Recipe Bundles Matching "{{ query }}"</h3>
+        {% else %}
+        <div>
+            <h3 class="fw-bold mb-1 text-dark">🌟 Recommended Recipes</h3>
+            <p class="text-muted small mb-0">Handpicked top 3 meal recipe bundles for quick 1-click grocery shopping</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- RECIPES SHOWCASE GRID -->
+    <div class="row g-4 mb-5">
+        {% for item in recipes %}
+        {% with recipe=item.recipe %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-lg border-0 rounded-4 overflow-hidden hover-top transition-all bg-white">
+                
+                <!-- CARD HEADER BADGES -->
+                <div class="card-header bg-light border-0 p-4 pb-0 d-flex justify-content-between align-items-center">
+                    <span class="badge bg-success rounded-pill px-3 py-2 fw-semibold shadow-sm">
+                        {{ recipe.health_tag }}
+                    </span>
+                    <small class="text-muted fw-bold">⏱️ {{ recipe.prep_time }}</small>
+                </div>
+
+                <div class="card-body p-4 d-flex flex-column">
+                    <h3 class="fw-bold text-dark mb-2">{{ recipe.name }}</h3>
+                    <p class="text-muted small flex-grow-1 mb-3">{{ recipe.description }}</p>
+
+                    <!-- METRICS & STOCK AVAILABILITY BAR -->
+                    <div class="d-flex justify-content-between align-items-center text-muted small p-2 bg-light rounded-3 mb-3">
+                        <span>👥 <strong>{{ recipe.servings }}</strong> Servings</span>
+                        {% if item.is_fully_available %}
+                        <span class="badge bg-success rounded-pill">✔ All {{ item.total_ing }} Items In Stock</span>
+                        {% else %}
+                        <span class="badge bg-warning text-dark rounded-pill">⚠️ {{ item.in_stock_count }}/{{ item.total_ing }} Available</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- INGREDIENTS LIST PREVIEW & AVAILABILITY -->
+                    <div class="border rounded-3 p-3 mb-4 bg-white">
+                        <strong class="small text-dark d-block mb-2">🛒 Required Ingredients & Availability:</strong>
+                        <ul class="list-unstyled mb-0 small text-muted">
+                            {% for ing in item.ingredients %}
+                            <li class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="text-dark">
+                                    {% if ing.product.available and ing.product.stock > 0 %}
+                                    <span class="text-success me-1">✔</span> {{ ing.product.name }}
+                                    {% else %}
+                                    <span class="text-danger me-1">❌</span> {{ ing.product.name }}
+                                    {% endif %}
+                                </span>
+                                <div>
+                                    <span class="badge bg-light text-dark border me-1">{{ ing.unit_note }}</span>
+                                    {% if ing.product.available and ing.product.stock > 0 %}
+                                    <span class="badge bg-success-subtle text-success">₹{{ ing.product.price }}</span>
+                                    {% else %}
+                                    <span class="badge bg-danger-subtle text-danger">Out of Stock</span>
+                                    {% endif %}
+                                </div>
+                            </li>
+                            {% empty %}
+                            <li class="fst-italic text-muted">Fresh ingredients included</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <!-- PRICE & DUAL ACTION BUTTONS -->
+                    <div class="pt-2 border-top">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="text-muted small">Total Bundle Price</span>
+                            <h3 class="fw-bold text-success mb-0">₹{{ recipe.total_bundle_price }}</h3>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            {% if item.is_fully_available %}
+                            <a href="{% url 'add_recipe_to_cart' recipe.id %}" class="btn btn-success btn-lg rounded-pill fw-bold shadow-sm hover-scale">
+                                🛒 Add All To Cart
+                            </a>
+                            {% else %}
+                            <a href="{% url 'add_recipe_to_cart' recipe.id %}" class="btn btn-warning btn-lg rounded-pill fw-bold shadow-sm">
+                                🛒 Add Available Items To Cart
+                            </a>
+                            {% endif %}
+                            <a href="{% url 'recipe_detail' recipe.id %}" class="btn btn-outline-success rounded-pill fw-semibold">
+                                📖 View Details & Instructions
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        {% endwith %}
+        {% empty %}
+        {% if not breakdown %}
+        <div class="col-12 text-center py-5">
+            <div class="card border-0 shadow-sm rounded-4 p-5">
+                <span style="font-size: 4rem;">🍳</span>
+                <h3 class="mt-3">No Recipe Match Found for "{{ query }}"</h3>
+                <p class="text-muted">Try searching for recipes like "Biryani", "Pasta", "Fruit Salad", or "Smoothie".</p>
+                <a href="{% url 'recipe_list' %}" class="btn btn-success rounded-pill px-4 mx-auto">View Recommended Recipes</a>
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

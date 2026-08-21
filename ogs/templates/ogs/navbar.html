@@ -1,0 +1,203 @@
+<nav class="navbar navbar-expand-lg navbar-dark">
+
+    <div class="container-fluid px-4">
+
+        <!-- Logo -->
+
+        <a class="navbar-brand logo fw-bold text-white fs-4" href="{% url 'home' %}">
+            🛒 Online Grocery Store
+        </a>
+
+        <!-- Mobile Toggle -->
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+
+            <span class="navbar-toggler-icon"></span>
+
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+
+            <!-- Search Form -->
+
+            <form class="d-flex mx-auto position-relative search-form" style="max-width: 380px; width: 50%;" action="{% url 'products' %}" method="GET">
+
+                <div class="input-group">
+
+                    <input type="text" name="q" id="searchBox" class="form-control bg-white text-dark"
+                        placeholder="Search 100+ fresh groceries..." value="{{ query|default:'' }}" autocomplete="off">
+
+                    <button class="btn btn-light" type="button" onclick="startVoiceSearch()" title="Voice Search">
+
+                        🎤
+
+                    </button>
+
+                    <button class="btn btn-warning fw-bold px-3" type="submit">🔍</button>
+
+                </div>
+
+                <div id="searchResults" class="list-group position-absolute w-100 shadow-lg rounded-3 mt-1 overflow-hidden" style="top:45px;z-index:999;">
+                </div>
+
+            </form>
+
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    const searchBox = document.getElementById("searchBox");
+                    const searchResults = document.getElementById("searchResults");
+
+                    if (searchBox && searchResults) {
+                        searchBox.addEventListener("input", function () {
+                            const query = this.value.trim();
+
+                            if (!query) {
+                                searchResults.innerHTML = "";
+                                return;
+                            }
+
+                            fetch("/search-products/?q=" + encodeURIComponent(query))
+                                .then(res => res.json())
+                                .then(data => {
+                                    if (data.products && data.products.length > 0) {
+                                        let html = "";
+                                        data.products.forEach(p => {
+                                            const targetUrl = p.slug ? `/products/${p.slug}/` : `/product/${p.id}/`;
+                                            html += `
+                                                <a href="${targetUrl}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2 px-3">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <img src="${p.image_url}" style="width: 32px; height: 32px; object-fit: cover; border-radius: 6px;" alt="">
+                                                        <div>
+                                                            <span class="fw-bold text-dark d-block fs-6">${p.name}</span>
+                                                            <small class="text-muted">${p.category}</small>
+                                                        </div>
+                                                    </div>
+                                                    <span class="badge bg-success rounded-pill px-2 py-1">₹${p.price}</span>
+                                                </a>
+                                            `;
+                                        });
+                                        searchResults.innerHTML = html;
+                                    } else {
+                                        searchResults.innerHTML = `<div class="list-group-item text-muted py-2 px-3 small">No items found matching "${query}"</div>`;
+                                    }
+                                }).catch(() => {
+                                    searchResults.innerHTML = "";
+                                });
+                        });
+
+                        document.addEventListener("click", function (e) {
+                            if (!searchBox.contains(e.target) && !searchResults.contains(e.target)) {
+                                searchResults.innerHTML = "";
+                            }
+                        });
+                    }
+                });
+            </script>
+
+            <!-- Menu -->
+
+            <ul class="navbar-nav ms-auto align-items-center gap-1">
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'home' %}">Home</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'products' %}">Products</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'categories' %}">Categories</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'recipe_list' %}">Recipes</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'about' %}">About</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'contact' %}">Contact</a>
+                </li>
+
+                {% if user.is_authenticated %}
+
+                <li class="nav-item me-1">
+                    <a class="nav-link position-relative px-3 btn btn-outline-light btn-sm text-white border-0" href="{% url 'cart' %}">
+                        🛒 Cart
+                        {% if cart_count %}
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow">
+                            {{ cart_count }}
+                        </span>
+                        {% endif %}
+                    </a>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle bg-white text-success px-3 py-1 rounded-pill fw-bold" href="#" role="button" data-bs-toggle="dropdown">
+                        👤 {{ user.first_name|default:user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 mt-2">
+                        <li>
+                            <a class="dropdown-item py-2" href="{% url 'profile' %}">
+                                👤 My Profile
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item py-2" href="{% url 'my_orders' %}">
+                                📦 My Orders
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item py-2" href="{% url 'wishlist' %}">
+                                ❤️ Wishlist
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item py-2" href="{% url 'cart' %}">
+                                🛒 Shopping Cart
+                            </a>
+                        </li>
+                        {% if user.is_staff %}
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item py-2 text-warning fw-bold" href="{% url 'admin_dashboard' %}">
+                                ⚡ Admin Dashboard
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item py-2 text-primary fw-bold" href="/admin/" target="_blank">
+                                ⚙️ Django Admin
+                            </a>
+                        </li>
+                        {% endif %}
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item py-2 text-danger fw-bold" href="{% url 'logout' %}">
+                                🚪 Logout
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                {% else %}
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'login' %}">Login</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'register' %}">Register</a>
+                </li>
+
+                {% endif %}
+
+            </ul>
+
+        </div>
+
+    </div>
+
+</nav>

@@ -1,0 +1,207 @@
+{% extends 'ogs/base.html' %}
+{% load static %}
+
+{% block title %}My Profile - Online Grocery Store{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row g-4">
+        <!-- Sidebar Navigation -->
+        <div class="col-lg-3">
+            <div class="card shadow-sm border-0 rounded-4 p-3 text-center">
+                <div class="mx-auto mb-3 bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; font-size: 2.5rem;">
+                    👤
+                </div>
+                <h5 class="fw-bold mb-1">{{ user.get_full_name|default:user.username }}</h5>
+                <p class="text-muted small mb-2">{{ user.email }}</p>
+                <span class="badge bg-success rounded-pill px-3 py-2">Verified Customer</span>
+                
+                <hr class="my-3">
+                <div class="list-group list-group-flush text-start rounded-3">
+                    <a href="#account-details" class="list-group-item list-group-item-action border-0 active fw-semibold rounded-3 mb-1">
+                        ⚙️ Account Settings
+                    </a>
+                    <a href="{% url 'my_orders' %}" class="list-group-item list-group-item-action border-0 fw-semibold rounded-3 mb-1">
+                        📦 Order History
+                    </a>
+                    <a href="{% url 'wishlist' %}" class="list-group-item list-group-item-action border-0 fw-semibold rounded-3 mb-1">
+                        ❤️ My Wishlist
+                    </a>
+                    <a href="{% url 'cart' %}" class="list-group-item list-group-item-action border-0 fw-semibold rounded-3 mb-1">
+                        🛒 Shopping Cart
+                    </a>
+                    {% if user.is_staff %}
+                    <a href="{% url 'admin_dashboard' %}" class="list-group-item list-group-item-action border-0 fw-semibold text-warning rounded-3 mb-1">
+                        ⚡ Admin Dashboard
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="col-lg-9">
+            <!-- Account Details Card -->
+            <div class="card shadow-sm border-0 rounded-4 p-4 mb-4" id="account-details">
+                <h4 class="fw-bold text-success mb-3">⚙️ Personal Information</h4>
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="update_profile">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">First Name</label>
+                            <input type="text" name="first_name" class="form-control" value="{{ user.first_name }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Last Name</label>
+                            <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Username</label>
+                            <input type="text" class="form-control bg-light" value="{{ user.username }}" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Email Address</label>
+                            <input type="email" name="email" class="form-control" value="{{ user.email }}" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success fw-bold px-4 mt-3 rounded-3">
+                        💾 Save Changes
+                    </button>
+                </form>
+            </div>
+
+            <!-- Saved Addresses Card -->
+            <div class="card shadow-sm border-0 rounded-4 p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="fw-bold text-success mb-0">📍 Saved Shipping Addresses</h4>
+                    <button class="btn btn-outline-success btn-sm rounded-pill px-3 fw-bold" data-bs-toggle="collapse" data-bs-target="#addAddressForm">
+                        ➕ Add New Address
+                    </button>
+                </div>
+
+                <!-- Add Address Form (Collapsed) -->
+                <div class="collapse mb-4" id="addAddressForm">
+                    <div class="card card-body border bg-light rounded-3 p-3">
+                        <h6 class="fw-bold text-dark mb-3">New Delivery Address</h6>
+                        <form method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="add_address">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <input type="text" name="full_name" class="form-control" placeholder="Full Name" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="text" name="phone" class="form-control" placeholder="Phone Number" required>
+                                </div>
+                                <div class="col-12">
+                                    <textarea name="address" class="form-control" rows="2" placeholder="Full Street Address" required></textarea>
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="text" name="city" class="form-control" placeholder="City" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="text" name="state" class="form-control" placeholder="State" value="Telangana" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="text" name="pincode" class="form-control" placeholder="Pincode" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="text" name="landmark" class="form-control" placeholder="Landmark (Optional)">
+                                </div>
+                                <div class="col-md-6">
+                                    <select name="address_type" class="form-select">
+                                        <option value="Home">Home</option>
+                                        <option value="Office">Office</option>
+                                        <option value="Hostel">Hostel</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="is_default" id="isDefaultCheck">
+                                        <label class="form-check-label text-muted" for="isDefaultCheck">
+                                            Set as default address
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-sm fw-bold px-4 mt-3 rounded-pill">
+                                Save Address
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Addresses List -->
+                {% if addresses %}
+                <div class="row g-3">
+                    {% for addr in addresses %}
+                    <div class="col-md-6">
+                        <div class="border rounded-3 p-3 position-relative bg-white shadow-sm h-100">
+                            {% if addr.is_default %}
+                            <span class="badge bg-success position-absolute top-0 end-0 m-2">Default</span>
+                            {% endif %}
+                            <h6 class="fw-bold mb-1">{{ addr.full_name }} <span class="badge bg-light text-dark border">{{ addr.address_type }}</span></h6>
+                            <p class="text-muted small mb-1">{{ addr.address }}, {{ addr.city }}, {{ addr.state }} - {{ addr.pincode }}</p>
+                            <p class="text-muted small mb-2">📞 {{ addr.phone }}</p>
+                            <form method="POST" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete_address">
+                                <input type="hidden" name="address_id" value="{{ addr.id }}">
+                                <button type="submit" class="btn btn-sm btn-link text-danger p-0 text-decoration-none">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">No saved addresses yet. Click "Add New Address" above.</p>
+                {% endif %}
+            </div>
+
+            <!-- Recent Orders Card -->
+            <div class="card shadow-sm border-0 rounded-4 p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="fw-bold text-success mb-0">📦 Recent Orders</h4>
+                    <a href="{% url 'my_orders' %}" class="btn btn-sm btn-link text-success text-decoration-none fw-bold">View All Orders &rarr;</a>
+                </div>
+                {% if recent_orders %}
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Order #</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Total</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in recent_orders %}
+                            <tr>
+                                <td class="fw-bold">#{{ order.id }}</td>
+                                <td>{{ order.created_at|date:"M d, Y" }}</td>
+                                <td>
+                                    <span class="badge {% if order.status == 'Delivered' %}bg-success{% elif order.status == 'Cancelled' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                        {{ order.status }}
+                                    </span>
+                                </td>
+                                <td class="fw-bold text-success">₹{{ order.total_amount }}</td>
+                                <td>
+                                    <a href="{% url 'order_detail' order.id %}" class="btn btn-sm btn-outline-success rounded-pill px-3">Details</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">You haven't placed any orders yet. Start shopping!</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,116 @@
+<footer class="text-light pt-5 pb-4 mt-5 position-relative"
+    style="background: linear-gradient(135deg, #07221a 0%, #0d382c 50%, #154c3c 100%); border-top: 5px solid #20c997;">
+    <div class="container">
+        <!-- Top Row: Newsletter Subscription -->
+        <div
+            class="row bg-white bg-opacity-10 rounded-4 p-4 mb-5 align-items-center backdrop-blur shadow-sm border border-white border-opacity-10">
+            <div class="col-lg-6 mb-3 mb-lg-0">
+                <h4 class="fw-bold text-white mb-1">📩 Subscribe for Exclusive Offers & Fresh Updates</h4>
+                <p class="text-white-50 mb-0 small">Get weekly discounts, organic product alerts, and secret coupon
+                    codes.</p>
+            </div>
+            <div class="col-lg-6">
+                <form class="d-flex gap-2"
+                    onsubmit="event.preventDefault(); alert('Thank you for subscribing to Online Grocery Store newsletter!');">
+                    <input type="email" class="form-control rounded-pill px-4 py-2 bg-white border-0"
+                        placeholder="Enter your email address..." required>
+                    <button type="submit"
+                        class="btn btn-warning rounded-pill px-4 fw-bold text-dark text-nowrap hover-lift">
+                        Subscribe
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Brand & Bio -->
+            <div class="col-lg-4 col-md-6">
+                <h3 class="fw-bold text-warning mb-3 d-flex align-items-center gap-2">
+                    🛒 Online Grocery Store
+                </h3>
+                <p class="text-white-50 leading-relaxed mb-3" style="font-size: 0.95rem;">
+                    Your #1 trusted online supermarket for farm-fresh fruits, vegetables, pure dairy, staples, bakery,
+                    and daily household items. Freshness guaranteed right to your doorstep.
+                </p>
+                <div class="d-flex gap-2 fs-5">
+                    <span class="p-2 bg-white bg-opacity-10 rounded-circle" title="100% Organic">🥦</span>
+                    <span class="p-2 bg-white bg-opacity-10 rounded-circle" title="Fast Shipping">🚚</span>
+                    <span class="p-2 bg-white bg-opacity-10 rounded-circle" title="Safe Payments">🛡️</span>
+                    <span class="p-2 bg-white bg-opacity-10 rounded-circle" title="Everyday Low Prices">🏷️</span>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="col-lg-2 col-md-6">
+                <h5 class="fw-bold text-white mb-3 text-uppercase tracking-wider fs-6">Quick Links</h5>
+                <ul class="list-unstyled d-flex flex-column gap-2 small">
+                    <li><a href="{% url 'home' %}" class="text-white-50 text-decoration-none hover-warning">Home</a>
+                    </li>
+                    <li><a href="{% url 'products' %}" class="text-white-50 text-decoration-none hover-warning">All
+                            Products</a></li>
+                    <li><a href="{% url 'categories' %}" class="text-white-50 text-decoration-none hover-warning">Store
+                            Categories</a></li>
+                    <li><a href="{% url 'recipe_list' %}"
+                            class="text-white-50 text-decoration-none hover-warning">Recipe Hub</a></li>
+                    <li><a href="{% url 'about' %}" class="text-white-50 text-decoration-none hover-warning">About
+                            Us</a></li>
+                    <li><a href="{% url 'contact' %}" class="text-white-50 text-decoration-none hover-warning">Contact
+                            Us</a></li>
+                </ul>
+            </div>
+
+            <!-- Customer Account -->
+            <div class="col-lg-3 col-md-6">
+                <h5 class="fw-bold text-white mb-3 text-uppercase tracking-wider fs-6">Customer Service</h5>
+                <ul class="list-unstyled d-flex flex-column gap-2 small">
+                    {% if user.is_authenticated %}
+                    <li><a href="{% url 'profile' %}" class="text-white-50 text-decoration-none hover-warning">My
+                            Profile</a></li>
+                    <li><a href="{% url 'my_orders' %}" class="text-white-50 text-decoration-none hover-warning">My
+                            Order History</a></li>
+                    <li><a href="{% url 'wishlist' %}"
+                            class="text-white-50 text-decoration-none hover-warning">Wishlist</a></li>
+                    <li><a href="{% url 'cart' %}" class="text-white-50 text-decoration-none hover-warning">Shopping
+                            Cart</a></li>
+                    {% else %}
+                    <li><a href="{% url 'login' %}" class="text-white-50 text-decoration-none hover-warning">Sign In</a>
+                    </li>
+                    <li><a href="{% url 'register' %}" class="text-white-50 text-decoration-none hover-warning">Register
+                            Account</a></li>
+                    <li><a href="{% url 'forgot_password' %}"
+                            class="text-white-50 text-decoration-none hover-warning">Forgot Password</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+
+            <!-- Contact & Payment Methods -->
+            <div class="col-lg-3 col-md-6">
+                <h5 class="fw-bold text-white mb-3 text-uppercase tracking-wider fs-6">Contact & Support</h5>
+                <p class="text-white-50 small mb-2">📍 Hyderabad, Telangana, India</p>
+                <p class="text-white-50 small mb-2">📧 nallapremtejagoud@gmail.com</p>
+                <p class="text-white-50 small mb-3">📞 +91 88853 99844</p>
+
+                <h6 class="fw-bold text-white small mb-2">Accepted Payment Options</h6>
+                <div class="d-flex gap-2 flex-wrap">
+                    <span class="badge bg-white text-dark border fw-normal px-2 py-1">💵 COD</span>
+                    <span class="badge bg-primary fw-normal px-2 py-1">💳 Razorpay</span>
+                    <span class="badge bg-success fw-normal px-2 py-1">📲 UPI</span>
+                    <span class="badge bg-info text-dark fw-normal px-2 py-1">🏦 Cards / Netbanking</span>
+                </div>
+            </div>
+        </div>
+
+        <hr class="border-white border-opacity-10 my-4">
+
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center text-white-50 small">
+            <p class="mb-2 mb-md-0">© 2026 <strong>Online Grocery Store</strong>. All Rights Reserved.</p>
+            <div class="d-flex gap-3">
+                <a href="#" class="text-white-50 text-decoration-none hover-warning">Privacy Policy</a>
+                <span>•</span>
+                <a href="#" class="text-white-50 text-decoration-none hover-warning">Terms of Service</a>
+                <span>•</span>
+                <a href="#" class="text-white-50 text-decoration-none hover-warning">Refund Policy</a>
+            </div>
+        </div>
+    </div>
+</footer>

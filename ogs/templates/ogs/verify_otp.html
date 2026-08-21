@@ -1,0 +1,91 @@
+{% extends 'ogs/base.html' %}
+
+{% block title %}Verify OTP{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5" style="max-width:500px;">
+
+    <div class="card shadow p-4">
+
+        <h2 class="text-center mb-4">
+            Verify Email
+        </h2>
+
+        {% for message in messages %}
+            <div class="alert alert-info">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        <form method="POST">
+
+            {% csrf_token %}
+
+            <div class="mb-3">
+
+                <label>Enter OTP</label>
+
+                <input
+                    type="text"
+                    name="otp"
+                    class="form-control"
+                    maxlength="6"
+                    required>
+
+            </div>
+
+            <button class="btn btn-success w-100">
+                Verify OTP
+            </button>
+            <div class="text-center mt-3">
+
+    <p id="timer" class="text-danger">
+        Resend OTP in 60 seconds
+    </p>
+
+    <a
+        id="resendLink"
+        href="{% url 'resend_otp' %}"
+        style="display:none;"
+    >
+        Resend OTP
+    </a>
+
+</div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<script>
+
+let seconds = 60;
+
+const timer = document.getElementById("timer");
+
+const resendLink = document.getElementById("resendLink");
+
+const countdown = setInterval(function(){
+
+    seconds--;
+
+    timer.innerHTML = "Resend OTP in " + seconds + " seconds";
+
+    if(seconds <= 0){
+
+        clearInterval(countdown);
+
+        timer.style.display = "none";
+
+        resendLink.style.display = "inline";
+
+    }
+
+},1000);
+
+</script>
+
+{% endblock %}

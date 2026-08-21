@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Payment</title>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <style>
+
+        body{
+            margin:0;
+            padding:0;
+            font-family:Arial,Helvetica,sans-serif;
+            background:#f5f5f5;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            height:100vh;
+        }
+
+        .box{
+
+            background:#fff;
+            width:420px;
+            padding:30px;
+            border-radius:10px;
+            text-align:center;
+            box-shadow:0 0 20px rgba(0,0,0,.15);
+
+        }
+
+        h2{
+
+            color:#28a745;
+            margin-bottom:10px;
+
+        }
+
+        h3{
+
+            color:#333;
+
+        }
+
+        p{
+
+            color:#777;
+
+        }
+
+        button{
+
+            margin-top:20px;
+            width:100%;
+            padding:15px;
+            background:#28a745;
+            color:white;
+            border:none;
+            border-radius:6px;
+            cursor:pointer;
+            font-size:18px;
+
+        }
+
+        button:hover{
+
+            background:#218838;
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>Online Grocery Store</h2>
+
+<h3>Complete Your Payment</h3>
+
+<p>Total Amount</p>
+
+<h2>₹ {{ total }}</h2>
+
+<button id="pay-btn">
+
+Pay Now
+
+</button>
+
+</div>
+
+<script>
+
+var options = {
+
+    "key":"{{ razorpay_key }}",
+
+    "amount":"{{ payment.amount }}",
+
+    "currency":"INR",
+
+    "name":"Online Grocery Store",
+
+    "description":"Order Payment",
+
+    "image":"",
+
+    "order_id":"{{ payment.id }}",
+
+    "handler":function(response){
+
+        window.location.href =
+        "{% url 'payment_success' %}"
+        +"?payment_id="+response.razorpay_payment_id
+        +"&order_id="+response.razorpay_order_id
+        +"&signature="+response.razorpay_signature;
+
+    },
+
+    "prefill":{
+
+        "name":"{{ order.full_name }}",
+
+        "contact":"{{ order.phone }}"
+
+    },
+
+    "theme":{
+
+        "color":"#28a745"
+
+    },
+
+    "config":{
+
+        "display":{
+
+            "blocks":{
+
+                "upi":{
+
+                    "name":"UPI Payment",
+
+                    "instruments":[
+
+                        {
+
+                            "method":"upi"
+
+                        }
+
+                    ]
+
+                }
+
+            },
+
+            "sequence":[
+
+                "block.upi"
+
+            ],
+
+            "preferences":{
+
+                "show_default_blocks":true
+
+            }
+
+        }
+
+    },
+
+    "modal":{
+
+        "ondismiss":function(){
+
+            alert("Payment Cancelled");
+
+            window.location.href="{% url 'checkout' %}";
+
+        }
+
+    }
+
+};
+
+var rzp = new Razorpay(options);
+
+document.getElementById("pay-btn").onclick=function(e){
+
+    rzp.open();
+
+    e.preventDefault();
+
+};
+
+window.onload=function(){
+
+    rzp.open();
+
+};
+
+</script>
+
+</body>
+</html>

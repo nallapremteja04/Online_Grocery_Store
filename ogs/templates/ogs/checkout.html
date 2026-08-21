@@ -1,0 +1,159 @@
+{% extends 'ogs/base.html' %}
+{% load static %}
+
+{% block title %}Checkout - Online Grocery Store{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="fw-bold text-dark mb-4">🧾 Checkout & Shipping Details</h2>
+
+    <form method="POST" id="checkoutForm">
+        {% csrf_token %}
+
+        <div class="row g-4">
+            <!-- Left: Delivery Details & Payment Method -->
+            <div class="col-lg-8">
+
+                <!-- Saved Address Quick Selector -->
+                {% if saved_addresses %}
+                <div class="card shadow-sm border-0 rounded-4 mb-4 p-3 bg-light">
+                    <h6 class="fw-bold text-dark mb-2">📍 Select From Saved Addresses</h6>
+                    <div class="row g-2">
+                        {% for addr in saved_addresses %}
+                        <div class="col-md-6">
+                            <div class="form-check card card-body p-2 border bg-white rounded-3 h-100 cursor-pointer" onclick="selectAddress('{{ addr.full_name|escapejs }}', '{{ addr.phone|escapejs }}', '{{ addr.address|escapejs }}', '{{ addr.city|escapejs }}', '{{ addr.pincode|escapejs }}')">
+                                <span class="fw-bold d-block small">{{ addr.full_name }} ({{ addr.address_type }})</span>
+                                <small class="text-muted text-truncate d-block">{{ addr.address }}, {{ addr.city }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Shipping Address Form -->
+                <div class="card shadow-sm border-0 rounded-4 mb-4 overflow-hidden">
+                    <div class="card-header bg-success text-white py-3">
+                        <h5 class="mb-0 fw-bold">🚚 1. Shipping Address</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Full Name</label>
+                                <input type="text" id="id_full_name" name="full_name" class="form-control" value="{{ user.get_full_name|default:user.username }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Phone Number</label>
+                                <input type="text" id="id_phone" name="phone" class="form-control" placeholder="10-digit mobile number" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Delivery Address</label>
+                                <textarea id="id_address" name="address" rows="3" class="form-control" placeholder="House/Flat No., Building, Street Name, Area" required></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">City</label>
+                                <input type="text" id="id_city" name="city" class="form-control" value="Hyderabad" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Pincode</label>
+                                <input type="text" id="id_pincode" name="pincode" class="form-control" placeholder="6-digit pincode" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Method Form -->
+                <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4">
+                    <div class="card-header bg-dark text-white py-3">
+                        <h5 class="mb-0 fw-bold">💳 2. Payment Method</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="form-check p-3 border rounded-3 mb-3 bg-light">
+                            <input class="form-check-input ms-0 me-3" type="radio" name="payment_method" id="payCOD" value="COD" checked>
+                            <label class="form-check-label fw-bold text-dark" for="payCOD">
+                                💵 Cash on Delivery (COD)
+                                <small class="d-block text-muted fw-normal">Pay with cash or UPI when your groceries arrive at your doorstep.</small>
+                            </label>
+                        </div>
+                        <div class="form-check p-3 border rounded-3 bg-light">
+                            <input class="form-check-input ms-0 me-3" type="radio" name="payment_method" id="payRazorpay" value="RAZORPAY">
+                            <label class="form-check-label fw-bold text-dark" for="payRazorpay">
+                                💳 Online Payment (Razorpay / UPI / Net Banking / Cards)
+                                <small class="d-block text-muted fw-normal">Instant digital payment via Razorpay secure gateway.</small>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Order Items & Order Summary -->
+            <div class="col-lg-4">
+                <div class="card shadow-sm border-0 rounded-4 p-4 sticky-top" style="top: 80px;">
+                    <h5 class="fw-bold text-dark mb-3">🛍 Order Breakdown</h5>
+
+                    <div class="mb-3 max-h-48 overflow-y-auto pe-1" style="max-height: 220px; overflow-y: auto;">
+                        {% for item in items %}
+                        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                            <div class="d-flex align-items-center gap-2">
+                                <img src="{{ item.product.image_url }}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px;" alt="" onerror="this.onerror=null; this.src='/static/ogs/images/default_product.png';">
+                                <div>
+                                    <span class="fw-bold text-dark d-block small text-truncate" style="max-width: 140px;">{{ item.product.name }}</span>
+                                    <small class="text-muted">Qty: {{ item.quantity }} × ₹{{ item.product.price }}</small>
+                                </div>
+                            </div>
+                            <span class="fw-bold text-dark small">₹{{ item.total_price }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Items Subtotal</span>
+                        <span class="fw-bold text-dark">₹{{ subtotal }}</span>
+                    </div>
+
+                    {% if discount > 0 %}
+                    <div class="d-flex justify-content-between mb-2 text-success">
+                        <span>Coupon Savings</span>
+                        <span class="fw-bold">- ₹{{ discount }}</span>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="text-muted">Delivery Charge</span>
+                        {% if delivery_charge == 0 %}
+                        <span class="text-success fw-bold">FREE</span>
+                        {% else %}
+                        <span class="fw-bold text-dark">₹{{ delivery_charge }}</span>
+                        {% endif %}
+                    </div>
+
+                    <hr class="my-2">
+
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="fw-bold text-dark mb-0">Total Payable</h5>
+                        <h4 class="fw-bold text-success mb-0">₹{{ grand_total }}</h4>
+                    </div>
+
+                    <div class="alert alert-success p-3 rounded-3 mb-4 small">
+                        🚚 Estimated Delivery: <strong>Within 2 Days</strong>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 rounded-pill fw-bold py-3 shadow">
+                        Confirm & Place Order &rarr;
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+function selectAddress(name, phone, addr, city, pin) {
+    document.getElementById('id_full_name').value = name;
+    document.getElementById('id_phone').value = phone;
+    document.getElementById('id_address').value = addr;
+    document.getElementById('id_city').value = city;
+    document.getElementById('id_pincode').value = pin;
+}
+</script>
+{% endblock %}

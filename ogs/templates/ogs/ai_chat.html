@@ -1,0 +1,171 @@
+{% extends 'ogs/base.html' %}
+
+{% block title %}
+AI Grocery Assistant
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <div class="row justify-content-center">
+
+        <div class="col-lg-8">
+
+            <div class="card shadow">
+
+                <div class="card-header bg-success text-white">
+
+                    <h3 class="mb-0">
+                        🤖 Grocery AI Assistant
+                    </h3>
+
+                </div>
+
+                <div
+                    id="chatBox"
+                    class="card-body"
+                    style="height:500px;
+                           overflow-y:auto;
+                           background:#f8f9fa;">
+
+                    <div class="mb-3">
+
+                        <div class="alert alert-success">
+
+                            👋 Hello! I'm your Grocery AI Assistant.<br>
+                            Ask me anything about groceries, recipes,
+                            nutrition or shopping.
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="card-footer">
+
+                    <div class="input-group">
+
+                        <input
+                            type="text"
+                            id="message"
+                            class="form-control"
+                            placeholder="Type your question...">
+
+                        <button
+                            class="btn btn-success"
+                            onclick="sendMessage()">
+
+                            Send
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+function sendMessage(){
+
+    let message=document.getElementById("message").value;
+
+    if(message.trim()=="") return;
+
+    let chat=document.getElementById("chatBox");
+
+    chat.innerHTML +=
+
+    `
+    <div class="text-end mb-3">
+
+        <span class="badge bg-primary p-3">
+
+            ${message}
+
+        </span>
+
+    </div>
+    `;
+
+    document.getElementById("message").value="";
+
+    chat.innerHTML +=
+
+    `
+    <div id="typing">
+
+        🤖 AI is typing...
+
+    </div>
+    `;
+
+    chat.scrollTop=chat.scrollHeight;
+
+    fetch("{% url 'ai_chat' %}",{
+
+        method:"POST",
+
+        headers:{
+
+            "Content-Type":
+            "application/x-www-form-urlencoded",
+
+            "X-CSRFToken":"{{ csrf_token }}"
+
+        },
+
+        body:"message="+encodeURIComponent(message)
+
+    })
+
+    .then(response=>response.json())
+
+    .then(data=>{
+
+        document.getElementById("typing").remove();
+
+        chat.innerHTML +=
+
+        `
+        <div class="mb-3">
+
+            <span class="badge bg-success p-3">
+
+                ${data.reply}
+
+            </span>
+
+        </div>
+        `;
+
+        chat.scrollTop=chat.scrollHeight;
+
+    });
+
+}
+
+document.getElementById("message")
+
+.addEventListener("keypress",function(e){
+
+    if(e.key==="Enter"){
+
+        sendMessage();
+
+    }
+
+});
+
+</script>
+
+{% endblock %}

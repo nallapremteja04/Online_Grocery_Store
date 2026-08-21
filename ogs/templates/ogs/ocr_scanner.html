@@ -1,0 +1,110 @@
+{% extends 'ogs/base.html' %}
+
+{% block title %}
+OCR Scanner
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+<h2>
+
+📷 Shopping List Scanner
+
+</h2>
+
+<form
+method="POST"
+enctype="multipart/form-data">
+
+{% csrf_token %}
+
+{{ form.as_p }}
+
+<button
+class="btn btn-success">
+
+Scan Image
+
+</button>
+
+</form>
+
+{% if text %}
+
+<hr>
+
+<h4>
+
+Extracted Text
+
+</h4>
+
+<pre>
+
+{{ text }}
+
+</pre>
+
+{% endif %}
+
+{% if products %}
+
+<hr>
+
+<h4>
+
+Matched Products
+
+</h4>
+
+<div class="row">
+
+{% for product in products %}
+
+<div class="col-md-3 mb-4">
+
+<div class="card shadow">
+
+<img src="{{ product.image.url }}"
+class="card-img-top"
+style="height:200px;object-fit:cover;">
+
+<div class="card-body">
+
+<h5>
+
+{{ product.name }}
+
+</h5>
+
+<h4 class="text-success">
+
+₹{{ product.price }}
+
+</h4>
+
+<a href="{% url 'add_to_cart' product.id %}"
+
+class="btn btn-success w-100">
+
+Add To Cart
+
+</a>
+
+</div>
+
+</div>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+{% endif %}
+
+</div>
+
+{% endblock %}

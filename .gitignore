@@ -1,0 +1,42 @@
+# Environment & Secret variables
+.env
+.env.local
+.env.*.local
+*.env
+
+# SQLite Database & Storage
+*.sqlite3
+db.sqlite3
+
+# Python & Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Django static & media uploads
+staticfiles/
+*.log
+
+# Large Binaries, Submission Archives & Media
+*.zip
+*.mp4
+*.tar.gz
+*.rar
+Online_Grocery_Store_Project.zip
+Review_Video.mp4
+
+# IDE & OS Files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

@@ -1,0 +1,88 @@
+{% extends 'ogs/base.html' %}
+{% load static %}
+
+{% block title %}My Order History - Online Grocery Store{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">📦 Order History</h2>
+            <p class="text-muted mb-0">Track, view and manage your grocery orders</p>
+        </div>
+        <a href="{% url 'products' %}" class="btn btn-outline-success rounded-pill fw-bold px-3">
+            + Shop New Groceries
+        </a>
+    </div>
+
+    {% if orders %}
+    <div class="row g-4">
+        {% for order in orders %}
+        <div class="col-12">
+            <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+                <div class="card-header bg-light py-3 px-4 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="fw-bold text-dark fs-5">Order #{{ order.id }}</span>
+                        <span class="badge {% if order.status == 'Delivered' %}bg-success{% elif order.status == 'Cancelled' %}bg-danger{% elif order.status == 'Shipped' %}bg-primary{% else %}bg-warning text-dark{% endif %} px-3 py-2 rounded-pill">
+                            {{ order.status }}
+                        </span>
+                        <span class="badge bg-secondary-subtle text-dark border px-2 py-1 rounded-pill small">
+                            Payment: {{ order.payment_method }} ({{ order.payment_status }})
+                        </span>
+                    </div>
+                    <div class="text-muted small">
+                        Placed on {{ order.created_at|date:"M d, Y - h:i A" }}
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    <div class="row align-items-center g-3">
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-dark mb-1">Delivery Address:</h6>
+                            <p class="text-muted small mb-2">
+                                👤 {{ order.full_name }} (📞 {{ order.phone }})<br>
+                                📍 {{ order.address }}, {{ order.city }} - {{ order.pincode }}
+                            </p>
+                            {% if order.expected_delivery %}
+                            <small class="text-success fw-bold">🚚 Expected Delivery: {{ order.expected_delivery|date:"M d, Y" }}</small>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-3 text-md-center">
+                            <span class="text-muted d-block small">Total Amount</span>
+                            <span class="fw-bold text-success fs-4">₹{{ order.total_amount }}</span>
+                        </div>
+
+                        <div class="col-md-3 text-md-end d-flex flex-column gap-2">
+                            <a href="{% url 'order_detail' order.id %}" class="btn btn-success btn-sm rounded-pill fw-bold px-3">
+                                👁 View Details
+                            </a>
+                            
+                            <a href="{% url 'invoice_pdf' order.id %}" class="btn btn-outline-secondary btn-sm rounded-pill fw-bold px-3" target="_blank">
+                                📄 Download Invoice PDF
+                            </a>
+
+                            {% if order.status == "Pending" or order.status == "Packed" %}
+                            <a href="{% url 'cancel_order' order.id %}" class="btn btn-outline-danger btn-sm rounded-pill fw-bold px-3" onclick="return confirm('Are you sure you want to cancel Order #{{ order.id }}?');">
+                                ❌ Cancel Order
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <!-- Empty Orders State -->
+    <div class="text-center py-5 bg-white rounded-4 shadow-sm p-4 my-4">
+        <div class="fs-1 mb-3">📦</div>
+        <h3 class="fw-bold text-dark">No Orders Placed Yet</h3>
+        <p class="text-muted max-w-md mx-auto mb-4">When you place orders, they will appear here with real-time status tracking.</p>
+        <a href="{% url 'products' %}" class="btn btn-success rounded-pill fw-bold px-4 py-2">Explore Fresh Products</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,544 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {% block title %}
+        {% endblock %}
+    </title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'ogs/css/style.css' %}">
+
+</head>
+
+<body>
+
+{% include 'ogs/navbar.html' %}
+
+<!-- Messages -->
+
+<div class="container mt-3">
+
+{% if messages %}
+
+    {% for message in messages %}
+
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+
+        {{ message }}
+
+        <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert">
+        </button>
+
+    </div>
+
+    {% endfor %}
+
+{% endif %}
+
+</div>
+
+{% block content %}
+{% endblock %}
+
+{% include 'ogs/footer.html' %}
+<!-- ========================= -->
+<!-- AI Assistant -->
+<!-- ========================= -->
+
+<div
+id="chatBox"
+
+style="
+display:none;
+position:fixed;
+bottom:100px;
+right:20px;
+width:450px;
+height:500px;
+background:white;
+border-radius:15px;
+box-shadow:0 0 20px rgba(0,0,0,.3);
+z-index:9999;
+overflow:hidden;
+">
+
+    <!-- Header -->
+
+    <div
+    id="chatHeader"
+    class="bg-success text-white d-flex justify-content-between align-items-center p-3"
+    style="cursor: move; user-select: none;">
+
+        <h5 class="mb-0">
+
+            🤖 Grocery Assistant
+
+        </h5>
+
+        <button
+
+        onclick="toggleChat()"
+
+        class="btn btn-light btn-sm rounded-circle"
+
+        style="
+        width:25px;
+        height:25px;
+        padding:0;
+        ">
+
+            ✖
+
+        </button>
+
+    </div>
+
+    <!-- Messages -->
+
+    <div
+
+    id="chatMessages"
+
+    style="
+    height:320px;
+    overflow-y:auto;
+    padding:15px;
+    background:#f8f9fa;
+    ">
+
+        <div class="alert alert-success">
+
+            👋 Hello! I am your Grocery AI Assistant.
+
+            <br><br>
+
+            Ask me about
+
+            <ul>
+
+                <li>🥬 Products</li>
+
+                <li>🍎 Healthy Food</li>
+
+                <li>🍲 Recipes</li>
+
+                <li>🛒 Shopping</li>
+
+            </ul>
+
+        </div>
+
+    </div>
+
+    <!-- Input -->
+
+    <div class="p-3 border-top">
+
+        <input
+
+        id="chatInput"
+
+        type="text"
+
+        class="form-control"
+
+        placeholder="Ask anything...">
+
+        <button
+
+        class="btn btn-success w-100 mt-2"
+
+        onclick="sendMessage()">
+
+            Send
+
+        </button>
+
+    </div>
+
+</div>
+
+<!-- Floating AI Button -->
+
+<button
+
+id="chatButton"
+
+onclick="toggleChat()"
+
+class="btn btn-success rounded-circle shadow"
+
+style="
+position:fixed;
+bottom:25px;
+left:25px;
+width:85px;
+height:85px;
+font-size:36px;
+z-index:9999;
+">
+
+🤖
+
+</button>
+
+<!-- Scroll To Top Button -->
+<button
+id="topBtn"
+onclick="topFunction()"
+title="Back to Top"
+class="btn btn-success rounded-circle shadow"
+style="
+display: none;
+position: fixed;
+bottom: 25px;
+right: 25px;
+width: 60px;
+height: 60px;
+font-size: 24px;
+line-height: 1;
+z-index: 9999;
+border: 2px solid white;
+transition: all 0.3s ease;
+">
+⬆️
+</button>
+<script>
+
+// ===============================
+// Pointer-Based Draggable AI Assistant
+// ===============================
+let isButtonDragging = false;
+let buttonWasMoved = false;
+
+function avoidTopBtnCollision(targetEl, proposedLeft, proposedTop) {
+    const topBtn = document.getElementById("topBtn");
+    if (!topBtn || topBtn.style.display === "none") {
+        return { left: proposedLeft, top: proposedTop };
+    }
+
+    const topRect = topBtn.getBoundingClientRect();
+    const width = targetEl.offsetWidth || 85;
+    const height = targetEl.offsetHeight || 85;
+    const margin = 20;
+
+    const isColliding = !(
+        (proposedLeft + width) < (topRect.left - margin) ||
+        proposedLeft > (topRect.right + margin) ||
+        (proposedTop + height) < (topRect.top - margin) ||
+        proposedTop > (topRect.bottom + margin)
+    );
+
+    if (isColliding) {
+        // Move to a safe distance left of topBtn
+        proposedLeft = topRect.left - width - margin;
+        if (proposedLeft < 10) {
+            // Move above topBtn if left edge is offscreen
+            proposedLeft = Math.max(10, topRect.left);
+            proposedTop = Math.max(10, topRect.top - height - margin);
+        }
+    }
+
+    return { left: proposedLeft, top: proposedTop };
+}
+
+function setupDraggable(targetEl, handleEl = null) {
+    const trigger = handleEl || targetEl;
+    let startX = 0, startY = 0;
+    let startLeft = 0, startTop = 0;
+
+    trigger.style.cursor = "grab";
+    trigger.style.touchAction = "none";
+
+    trigger.addEventListener("pointerdown", function(e) {
+        if (e.button !== 0) return;
+
+        const rect = targetEl.getBoundingClientRect();
+        startLeft = rect.left;
+        startTop = rect.top;
+        startX = e.clientX;
+        startY = e.clientY;
+
+        isButtonDragging = false;
+        if (targetEl.id === "chatButton") buttonWasMoved = false;
+
+        trigger.style.cursor = "grabbing";
+
+        function onPointerMove(e) {
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+
+            if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+                isButtonDragging = true;
+                if (targetEl.id === "chatButton") buttonWasMoved = true;
+
+                let newLeft = startLeft + dx;
+                let newTop = startTop + dy;
+
+                const maxLeft = window.innerWidth - targetEl.offsetWidth - 10;
+                const maxTop = window.innerHeight - targetEl.offsetHeight - 10;
+
+                newLeft = Math.max(10, Math.min(newLeft, maxLeft));
+                newTop = Math.max(10, Math.min(newTop, maxTop));
+
+                // Check collision with Scroll-To-Top button
+                const safePos = avoidTopBtnCollision(targetEl, newLeft, newTop);
+                newLeft = safePos.left;
+                newTop = safePos.top;
+
+                targetEl.style.position = "fixed";
+                targetEl.style.bottom = "auto";
+                targetEl.style.right = "auto";
+                targetEl.style.left = newLeft + "px";
+                targetEl.style.top = newTop + "px";
+            }
+        }
+
+        function onPointerUp(e) {
+            trigger.style.cursor = "grab";
+            window.removeEventListener("pointermove", onPointerMove);
+            window.removeEventListener("pointerup", onPointerUp);
+            window.removeEventListener("pointercancel", onPointerUp);
+        }
+
+        window.addEventListener("pointermove", onPointerMove);
+        window.addEventListener("pointerup", onPointerUp);
+        window.addEventListener("pointercancel", onPointerUp);
+    });
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    const chatBtn = document.getElementById("chatButton");
+    const chatBox = document.getElementById("chatBox");
+    const chatHeader = document.getElementById("chatHeader");
+
+    if (chatBtn) setupDraggable(chatBtn);
+    if (chatBox && chatHeader) setupDraggable(chatBox, chatHeader);
+});
+
+// ===============================
+// Toggle AI Chat with Smart Positioning
+// ===============================
+
+function toggleChat() {
+    if (buttonWasMoved) {
+        buttonWasMoved = false;
+        return; // Don't toggle if user was dragging the button
+    }
+
+    const chatBox = document.getElementById("chatBox");
+    const chatButton = document.getElementById("chatButton");
+
+    if (chatBox.style.display === "block") {
+        chatBox.style.display = "none";
+        chatButton.style.display = "block";
+    } else {
+        // Calculate smart position next to button
+        const btnRect = chatButton.getBoundingClientRect();
+        const boxWidth = 450;
+        const boxHeight = 500;
+
+        let boxTop = btnRect.top - boxHeight - 15;
+        if (boxTop < 10) {
+            boxTop = btnRect.bottom + 15;
+        }
+        boxTop = Math.max(10, Math.min(boxTop, window.innerHeight - boxHeight - 10));
+
+        let boxLeft = btnRect.left + btnRect.width - boxWidth;
+        if (boxLeft < 10) {
+            boxLeft = btnRect.left;
+        }
+        boxLeft = Math.max(10, Math.min(boxLeft, window.innerWidth - boxWidth - 10));
+
+        chatBox.style.position = "fixed";
+        chatBox.style.bottom = "auto";
+        chatBox.style.right = "auto";
+        chatBox.style.left = boxLeft + "px";
+        chatBox.style.top = boxTop + "px";
+
+        chatBox.style.display = "block";
+        chatButton.style.display = "none";
+
+        const input = document.getElementById("chatInput");
+        if (input) input.focus();
+    }
+}
+
+// ===============================
+// Send Message
+// ===============================
+
+function sendMessage(){
+
+    let input=document.getElementById("chatInput");
+
+    let message=input.value.trim();
+
+    if(message==="") return;
+
+    let chat=document.getElementById("chatMessages");
+
+    chat.innerHTML+=`
+
+        <div class="text-end mb-3">
+
+            <span class="badge bg-primary p-3">
+
+                ${message}
+
+            </span>
+
+        </div>
+
+    `;
+
+    input.value="";
+
+    chat.innerHTML+=`
+
+        <div id="typing" class="mb-3">
+
+            🤖 Thinking...
+
+        </div>
+
+    `;
+
+    chat.scrollTop=chat.scrollHeight;
+
+    fetch("/chatbot/?message="+encodeURIComponent(message))
+
+    .then(response=>{
+
+        if(!response.ok){
+
+            throw new Error("Server Error");
+
+        }
+
+        return response.json();
+
+    })
+
+    .then(data=>{
+
+        document.getElementById("typing").remove();
+
+        chat.innerHTML+=`
+
+            <div class="mb-3">
+
+                <div class="bg-light border rounded p-3">
+
+                    ${data.reply}
+
+                </div>
+
+            </div>
+
+        `;
+
+        chat.scrollTop=chat.scrollHeight;
+
+    })
+
+    .catch(error=>{
+
+        document.getElementById("typing").remove();
+
+        chat.innerHTML+=`
+
+            <div class="alert alert-danger">
+
+                Unable to contact AI.
+
+            </div>
+
+        `;
+
+        console.error(error);
+
+    });
+
+}
+
+// ===============================
+// Enter Key
+// ===============================
+
+document.addEventListener("DOMContentLoaded",function(){
+
+    const input=document.getElementById("chatInput");
+
+    if(input){
+
+        input.addEventListener("keypress",function(e){
+
+            if(e.key==="Enter"){
+
+                sendMessage();
+
+            }
+
+        });
+
+    }
+
+});
+
+// ===============================
+// Back To Top
+// ===============================
+
+window.addEventListener("scroll", function(){
+
+    let btn=document.getElementById("topBtn");
+
+    if(btn){
+
+        if(window.scrollY > 200 || document.documentElement.scrollTop > 200){
+
+            btn.style.display="block";
+
+        }
+
+        else{
+
+            btn.style.display="none";
+
+        }
+
+    }
+
+});
+
+function topFunction(){
+
+    window.scrollTo({
+
+        top:0,
+
+        behavior:"smooth"
+
+    });
+
+}
+
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

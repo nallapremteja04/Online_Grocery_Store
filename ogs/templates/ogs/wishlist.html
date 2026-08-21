@@ -1,0 +1,69 @@
+{% extends 'ogs/base.html' %}
+
+{% block title %}Wishlist{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <h2 class="mb-4">❤️ My Wishlist</h2>
+
+    {% if items %}
+
+    <div class="row">
+
+        {% for item in items %}
+
+        <div class="col-md-4 mb-4">
+
+            <div class="card h-100 shadow">
+
+                <img src="{{ item.product.image_url }}"
+                     class="card-img-top"
+                     style="height: 180px; object-fit: cover;" alt="{{ item.product.name }}">
+
+                <div class="card-body">
+
+                    <h5>{{ item.product.name }}</h5>
+
+                    <h4 class="text-success">
+                        ₹{{ item.product.price }}
+                    </h4>
+
+                    <a href="{% url 'wishlist_to_cart' item.id %}"
+                       class="btn btn-success w-100 mb-2">
+
+                        🛒 Move to Cart
+
+                    </a>
+
+                    <a href="{% url 'remove_wishlist' item.id %}"
+                       class="btn btn-danger w-100">
+
+                        Remove
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+    {% else %}
+
+    <div class="alert alert-info">
+
+        Your wishlist is empty.
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
