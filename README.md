@@ -121,7 +121,7 @@ Clone the repository and set up a virtual environment:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/Online_Grocery_Store.git
+git clone https://github.com/nallapremteja04/Online_Grocery_Store.git
 cd Online_Grocery_Store
 
 # Create virtual environment
